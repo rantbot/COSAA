@@ -20,10 +20,24 @@
 <iframe id="app" title="Camp Oyo Staff &amp; Alumni Association" allow="clipboard-write"></iframe>
 <script>
   var APP_URL = 'https://script.google.com/macros/s/AKfycbwIzb07rS8xz1rx29wkI-1YdsrKSg9V0TLkCiN3b-vvUy39mXpL_A9KbIYl5A_ct9k/exec';
-  // Pass along the sign-in link (?t=...) so emailed links work on this domain.
+  // Pass the address's settings (sign-in link, filters) along to the app.
   document.getElementById('app').src = APP_URL + window.location.search;
-  // Remove the one-time link from the address bar after it's used.
-  if (window.location.search) history.replaceState(null, '', window.location.pathname);
+  // Remove the one-time sign-in code from the address bar, keep any filters.
+  var params = new URLSearchParams(window.location.search);
+  if (params.has('t')) {
+    params.delete('t');
+    var rest = params.toString();
+    history.replaceState(null, '', window.location.pathname + (rest ? '?' + rest : ''));
+  }
+  // The app reports its current filters so this address can be bookmarked or shared.
+  window.addEventListener('message', function (e) {
+    var host = '';
+    try { host = new URL(e.origin).hostname; } catch (err) { return; }
+    if (!/\.googleusercontent\.com$/.test(host)) return;
+    var d = e.data;
+    if (!d || d.type !== 'oyo-filters' || typeof d.qs !== 'string') return;
+    history.replaceState(null, '', window.location.pathname + (d.qs ? '?' + d.qs : ''));
+  });
 </script>
 </body>
 </html>
